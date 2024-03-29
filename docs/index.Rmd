@@ -348,6 +348,7 @@ ggplot(plot_data, aes(x = t_values, y = densities)) +
          y = "Density") +
     theme_minimal()
 ```
+
 ### Two sample (Assumed non equal variance)
 
 #### Purpose of test
@@ -463,13 +464,15 @@ ggplot(plot_data, aes(x = t_values, y = densities)) +
          y = "Density") +
     theme_minimal()
 ```
+
 ### Paired t-test
 
 #### Purpose of test
 
 sometimes our two samples are not independen. Think of having samples where the order of the samples are the test subjects and suppose for each test subject we have to treatments such that person $j$ has the paired observation $(x_j,y_j)$. 
 
-The idea here is that we now have paired data and we want to check whether there are a significant difference between the means of each treatment. 
+The idea here is that we now have paired data and we want to check whether there are a significant difference between the means of each treatment. ¨
+
 #### Assumptions
 
 * Normality or approximate normality of difference ($X-Y$) distribution
