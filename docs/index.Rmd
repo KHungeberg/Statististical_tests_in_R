@@ -35,6 +35,9 @@ Showing of distribution: For tests that have a common distribution such as all t
 Functionality in R: 
 
 It would be nice with some explenation of the code used for each test so the person reading will know how to use the test in R.
+  - Also for this i think it could be nice to visualize the test statistic and p-value. 
+    The confidence interval would be harder to visualize i think. Could you actually do 
+    that?
 
 # Notes on ideas 
 
@@ -83,7 +86,6 @@ From the description of each test, the reader should know and understand the fol
 The T-test is probably one of the most famous statistical tests ever made. It's construction was made by the statistician and brewer William Gosset who figured the t-test statistic followed a t-distribution and could be used to test for the difference in means across a small population sample. The purpose of the test is thus to establish whether there are a statisticly significant difference in difference in means across groups or a single sample with a hypothesised mean. 
 
 ### One sample t-test 
-
 
 #### Purpose of test
 
@@ -709,6 +711,7 @@ $$H_0:F(x)=F_n(x) \quad H_A:F(x)\neq F_n(x)$$
 If we have to iid independent samples $x_1,x_2,\ldots x_n$ and $y_1,y_2,\ldots y_m$ (Notice the samples can have different sizes). Then let $F^X,F^Y$ denote the cdf of sample x and y respectively. Then we have the following null and alternative
 
 $$H_0:F^X(x)=F^Y(x) \quad H_A:F^X(x)\neq F^Y(x)$$
+
 #### Test statistic and distribution
 
 The test statistic is defined af the biggest difference between the cdf and ecdf or the ecdf of each sample. Thus if we have one sample and hypothesise a continuous distribution it is: 
