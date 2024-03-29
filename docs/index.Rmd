@@ -10,7 +10,7 @@ header-includes:
 ---
 # Packages 
 
-```{r}
+```{r,message=FALSE}
 library(tidyverse) ## For most data wrangling and visualization
 library(gridExtra) ## For grids of plots
 library(broom) ## For summarising statistical objects
@@ -433,12 +433,9 @@ test_result <- t.test(sample1,sample2,paired=T,mu=mu_1-mu_2)
 ## Investigate result. 
 
 test_result
-
-
-
 ```
 
-## ANOVA
+## ANOVA {.tabset}
 
 ### Origin
 
@@ -459,7 +456,9 @@ Our null hypothesis is that there are no difference in the means across the grou
 The null hypothesis is then: 
 
 $$H_0:\mu_1=\mu_2=\ldots = \mu_k \quad H_A:\mu_i\neq \mu_j \quad \text{For some (i,j)}$$
+
 #### Test statistic and distribution
+
 
 We make a few calculations across the groups: 
 Let $x_{ij}$ indicate group i observation number j. 
@@ -503,6 +502,7 @@ If we have two categories, the anova is the same as the two sample t-test and si
 
 
 ### Two way ANOVA 
+
 # non-parametric tests
 
 ## Wilcoxon
