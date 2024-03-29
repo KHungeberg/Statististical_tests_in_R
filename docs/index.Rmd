@@ -10,7 +10,7 @@ header-includes:
 ---
 # Packages 
 
-```{r,message=FALSE}
+```{r,message=F,warning=F}
 library(tidyverse) ## For most data wrangling and visualization
 library(gridExtra) ## For grids of plots
 library(broom) ## For summarising statistical objects
@@ -35,13 +35,16 @@ Showing of distribution: For tests that have a common distribution such as all t
 Functionality in R: 
 
 It would be nice with some explenation of the code used for each test so the person reading will know how to use the test in R.
-  - Also for this i think it could be nice to visualize the test statistic and p-value. 
-    The confidence interval would be harder to visualize i think. Could you actually do 
-    that?
 
+In terms of consistency throughout the project, it would be nice with a clean list of check ups i could do so i know that all sections follow the same format. This could be: 
+
+1. Are there any missing sections? (if so; include them even though there might not be much to say) 
+2. Is the test statistic and null hypothesis in the same format as the last test? (If not; fix it)
+3. Is the code clearly commented and understandable with accurate names?
 # Notes on ideas 
 
 ## Parametric tests
+
 
 ## Non parametric tests 
 
@@ -56,10 +59,11 @@ We could make a data frame with a column of sample size and then from that make 
 It could be great with some more explanation on the starting conditions such as: "Suppose we had a sample $x_1,x_2,x_3,\ldots x_n$. I think this will give a better understanding of the data you have beforehand. 
 
 Regarding derivations it would be nice with a longer session about why the test statistic follows a given distribution and is in fact a pivotal quantity. 
+- This will require a few steps, but i believe it will greatly enhance the understanding of the test purpose and null hypothesis. Also the assumptions and perhabs how disruptions in the assumptions affect the distribution. 
+- This is a very nice idea BUT i think the best thing at the moment is just to put out as many tests you can and when you dont have any more left you can begin on some of the derivations. 
 
-This will require a few steps, but i believe it will greatly enhance the understanding of the test purpose and null hypothesis. Also the assumptions and perhabs how disruptions in the assumptions affect the distribution. 
+Maybe join the robustness, interpretations and mininterpretations withing the one section?
 
-This is a very nice idea BUT i think the best thing at the moment is just to put out as many tests you can and when you dont have any more left you can begin on some of the derivations. 
 
 
 # Purpose: 
@@ -86,6 +90,7 @@ From the description of each test, the reader should know and understand the fol
 The T-test is probably one of the most famous statistical tests ever made. It's construction was made by the statistician and brewer William Gosset who figured the t-test statistic followed a t-distribution and could be used to test for the difference in means across a small population sample. The purpose of the test is thus to establish whether there are a statisticly significant difference in difference in means across groups or a single sample with a hypothesised mean. 
 
 ### One sample t-test 
+
 
 #### Purpose of test
 
@@ -158,6 +163,7 @@ As with any statistical test's p-value, the result does not show whether the nul
 
 To produce a one sample t test, we simply use the function t.test(). This function is by default a one sample t-test if our input is a single vector which it assumes if our sample. 
 
+##### Manual calculations and r-function
 ```{r}
 ### Random sample
 
@@ -165,14 +171,15 @@ n <- 5 ## Sample size
 
 sample <- rnorm(5,2.5) ## sampled from normal distribution with mean=5 and sd=1
 
-
 ## Calculate the statistic with correctly hypothesised mean.
 
 sample_mean <- mean(sample)
 
 sample_sd <- sd(sample)
 
-mu_0 <- 2.5
+mu_0 <- 2.7
+
+deg_free <- n-1 ## Degrees of freedom
 
 t_statistic <- (sample_mean-mu_0)/(sample_sd/sqrt(n))
 
@@ -180,7 +187,9 @@ t_statistic ## Print statistic
 
 sample_mean+c(-1,1)*(qt(0.975,df=n-1)*(sample_sd/sqrt(n))) ## Produce 95 percent confint.
 
-2*(1-(pt(t_statistic,df = n-1))) # P-value
+p_value <- 2*(1-(pt(t_statistic,df = n-1,lower.tail = F))) # P-value
+
+p_value
 
 
 ## Now we can produce the samle via the t.test function 
@@ -194,6 +203,36 @@ test_result <- t.test(sample,mu=mu_0)
 test_result
 
 ```
+
+
+We can visualize the test statistic and p value as such: 
+
+```{r}
+t_values <- seq(-4, 4, length.out = 200)
+
+
+# Calculate the corresponding densities of these t-values
+densities <- dt(t_values,deg_free)
+
+# Create the plot
+plot_data <- data.frame(t_values, densities)
+ggplot(plot_data, aes(x = t_values, y = densities)) +
+    geom_line() +
+    geom_ribbon(data = subset(plot_data, abs(t_statistic)<=(t_values)),
+                aes(ymin = 0, ymax = densities), fill = 'blue', alpha = 0.5) +
+  geom_ribbon(data = subset(plot_data, -abs(t_statistic)>=t_values),
+                aes(ymin = 0, ymax = densities), fill = 'blue', alpha = 0.5) +
+    geom_vline(xintercept = t_statistic, linetype = "dashed", color = "red") +
+    geom_vline(xintercept = -t_statistic, linetype = "dashed", color = "red") +
+  annotate("text", x = 2.5, y = max(densities), label = paste("T=", round(t_statistic, 2)), hjust = 0) +   
+  annotate("text", x = 2.7, y = max(densities)-0.02, label = paste("p-value =", round(p_value, 4)), vjust = 1.5) +
+    labs(title = "t-Distribution with Shaded p-value Area",
+         x = "t value",
+         y = "Density") +
+    theme_minimal()
+```
+
+
 
 ### Two sample (Assumed equal variance)
 
@@ -268,8 +307,9 @@ t_stat
 
 ((mu_1-mu_2)+c(1,-1)*(qt(0.975,df = deg_f)*se)) %>% sort() ## Confidence interval
 
-2*(pt(abs(t_stat),df=deg_f,lower.tail = F)) # P value
+p_value <- 2*(pt(abs(t_stat),df=deg_f,lower.tail = F)) # P value
 
+p_value 
 
 ## Use t.test() for the two sample t test with equal variance
 
@@ -278,6 +318,36 @@ test_result <- t.test(samp1,samp2,var.equal=T)
 test_result
 ```
 
+We can visualize the result: 
+
+```{r}
+t_values <- seq(-4, 4, length.out = 200)
+
+t_statistic <- t_stat 
+
+deg_f <- deg_free
+
+# Calculate the corresponding densities of these t-values
+densities <- dt(t_values,deg_free)
+
+
+# Create the plot
+plot_data <- data.frame(t_values, densities)
+ggplot(plot_data, aes(x = t_values, y = densities)) +
+    geom_line() +
+    geom_ribbon(data = subset(plot_data, abs(t_statistic)<=(t_values)),
+                aes(ymin = 0, ymax = densities), fill = 'blue', alpha = 0.5) +
+  geom_ribbon(data = subset(plot_data, -abs(t_statistic)>=t_values),
+                aes(ymin = 0, ymax = densities), fill = 'blue', alpha = 0.5) +
+    geom_vline(xintercept = t_statistic, linetype = "dashed", color = "red") +
+    geom_vline(xintercept = -t_statistic, linetype = "dashed", color = "red") +
+  annotate("text", x = 2.5, y = max(densities), label = paste("T=", round(t_statistic, 2)), hjust = 0) +   
+  annotate("text", x = 2.7, y = max(densities)-0.02, label = paste("p-value =", round(p_value, 4)), vjust = 1.5) +
+    labs(title = "t-Distribution with Shaded p-value Area",
+         x = "t value",
+         y = "Density") +
+    theme_minimal()
+```
 ### Two sample (Assumed non equal variance)
 
 #### Purpose of test
@@ -352,8 +422,9 @@ t_stat
 
 ((mu_1-mu_2)+c(1,-1)*(qt(0.975,df = deg_f)*se)) %>% sort() ## Confidence interval
 
-2*(pt(abs(t_stat),df=deg_f,lower.tail = F)) # P value
+p_value <- 2*(pt(abs(t_stat),df=deg_f,lower.tail = F)) # P value
 
+p_value
 
 ## Use t.test() for the two sample t test with equal variance
 
@@ -362,6 +433,36 @@ test_result <- t.test(samp1,samp2,var.equal=F)
 test_result
 ```
 
+We can visualize the results. 
+
+```{r}
+t_values <- seq(-4, 4, length.out = 200)
+
+t_statistic <- t_stat 
+
+deg_f <- deg_free
+
+# Calculate the corresponding densities of these t-values
+densities <- dt(t_values,deg_free)
+
+
+# Create the plot
+plot_data <- data.frame(t_values, densities)
+ggplot(plot_data, aes(x = t_values, y = densities)) +
+    geom_line() +
+    geom_ribbon(data = subset(plot_data, abs(t_statistic)<=(t_values)),
+                aes(ymin = 0, ymax = densities), fill = 'blue', alpha = 0.5) +
+  geom_ribbon(data = subset(plot_data, -abs(t_statistic)>=t_values),
+                aes(ymin = 0, ymax = densities), fill = 'blue', alpha = 0.5) +
+    geom_vline(xintercept = t_statistic, linetype = "dashed", color = "red") +
+    geom_vline(xintercept = -t_statistic, linetype = "dashed", color = "red") +
+  annotate("text", x = 2.5, y = max(densities), label = paste("T=", round(t_statistic, 2)), hjust = 0) +   
+  annotate("text", x = 2.7, y = max(densities)-0.02, label = paste("p-value =", round(p_value, 4)), vjust = 1.5) +
+    labs(title = "t-Distribution with Shaded p-value Area",
+         x = "t value",
+         y = "Density") +
+    theme_minimal()
+```
 ### Paired t-test
 
 #### Purpose of test
@@ -423,8 +524,9 @@ t_statistic ## Print statistic
 
 samplediff_mean+c(-1,1)*(qt(0.975,df=n-1)*(sample_sd/sqrt(n))) ## Produce 95 percent confint.
 
-2*(pt(t_statistic,df = n-1,lower.tail = F)) # P-value
+p_value <- 2*(pt(t_statistic,df = n-1,lower.tail = F)) # P-value
 
+p_value
 
 ## Now we can produce the samle via the t.test function 
 
@@ -435,6 +537,38 @@ test_result <- t.test(sample1,sample2,paired=T,mu=mu_1-mu_2)
 ## Investigate result. 
 
 test_result
+
+
+
+```
+
+We can visualize the results
+
+```{r}
+t_values <- seq(-4, 4, length.out = 200)
+
+deg_free <- n-1 
+
+# Calculate the corresponding densities of these t-values
+densities <- dt(t_values,deg_free)
+
+
+# Create the plot
+plot_data <- data.frame(t_values, densities)
+ggplot(plot_data, aes(x = t_values, y = densities)) +
+    geom_line() +
+    geom_ribbon(data = subset(plot_data, abs(t_statistic)<=(t_values)),
+                aes(ymin = 0, ymax = densities), fill = 'blue', alpha = 0.5) +
+  geom_ribbon(data = subset(plot_data, -abs(t_statistic)>=t_values),
+                aes(ymin = 0, ymax = densities), fill = 'blue', alpha = 0.5) +
+    geom_vline(xintercept = t_statistic, linetype = "dashed", color = "red") +
+    geom_vline(xintercept = -t_statistic, linetype = "dashed", color = "red") +
+  annotate("text", x = 2.5, y = max(densities), label = paste("T=", round(t_statistic, 2)), hjust = 0) +   
+  annotate("text", x = 2.7, y = max(densities)-0.02, label = paste("p-value =", round(p_value, 4)), vjust = 1.5) +
+    labs(title = "t-Distribution with Shaded p-value Area",
+         x = "t value",
+         y = "Density") +
+    theme_minimal()
 ```
 
 ## ANOVA {.tabset}
@@ -458,9 +592,7 @@ Our null hypothesis is that there are no difference in the means across the grou
 The null hypothesis is then: 
 
 $$H_0:\mu_1=\mu_2=\ldots = \mu_k \quad H_A:\mu_i\neq \mu_j \quad \text{For some (i,j)}$$
-
 #### Test statistic and distribution
-
 
 We make a few calculations across the groups: 
 Let $x_{ij}$ indicate group i observation number j. 
@@ -509,15 +641,27 @@ If we have two categories, the anova is the same as the two sample t-test and si
 
 ## Wilcoxon
 
-## Kruskall - Waliss
+## Kruskall - Waliss (maybe not true)
 
 ### Purpose
 
-This is the non parametric "equivalent" to the ANOVA test. Here we test whether the centers of several distributions are equal. 
+This is the non parametric "equivalent" to the ANOVA test. Here we test whether the centers of several distributions are equal, or rather the mean. 
 
 ### Null hypothesis
 
-Suppose we have $k$ groups and sample $x_{ij}$ being observation j of group i. 
+Suppose we have $k$ groups and sample $x_{ij}$ being observation j of group i. Then our null hypothesis is that all the means are equal. Thus it is the same as for ANOVA. 
+
+$$H_0: \mu_1=\mu_2=\cdots=\mu_k \quad H_A:\mu_a \neq \mu_b \quad \text{for some a and b}$$
+### Assumptions
+
+* We assume all samples are drawn from the same population with density $f(x-\mu_i)$. where $f(x)$ is a density with mean 0. 
+
+* Samples are drawn independently 
+
+## Test statistic and distribution
+
+As with the Wilcoxon rank sum and signed rank sum test, we rank the samples from lowest to highest. We also do this here for each group 
+
 
 
 ## Chi squared test {.tabset}
@@ -711,7 +855,6 @@ $$H_0:F(x)=F_n(x) \quad H_A:F(x)\neq F_n(x)$$
 If we have to iid independent samples $x_1,x_2,\ldots x_n$ and $y_1,y_2,\ldots y_m$ (Notice the samples can have different sizes). Then let $F^X,F^Y$ denote the cdf of sample x and y respectively. Then we have the following null and alternative
 
 $$H_0:F^X(x)=F^Y(x) \quad H_A:F^X(x)\neq F^Y(x)$$
-
 #### Test statistic and distribution
 
 The test statistic is defined af the biggest difference between the cdf and ecdf or the ecdf of each sample. Thus if we have one sample and hypothesise a continuous distribution it is: 
@@ -806,6 +949,39 @@ med_confint %>%
 
  
 
+# Testing
+
+```{r}
+# Assuming previous setup for data and t-test
+set.seed(55)
+data <- rnorm(100, mean = 50, sd = 10)
+t_test_result <- t.test(data, mu = 50)
+
+# Extract the t-statistic and degrees of freedom
+t_stat <- t_test_result$statistic
+df <- t_test_result$parameter
+
+# Create a sequence of t-values for plotting
+t_values <- seq(-4, 4, length.out = 200)
+# Calculate the corresponding densities of these t-values
+densities <- dt(t_values, df)
+
+# Create the plot
+plot_data <- data.frame(t_values, densities)
+ggplot(plot_data, aes(x = t_values, y = densities)) +
+    geom_line() +
+    geom_ribbon(data = subset(plot_data, abs(t_stat)<=(t_values)),
+                aes(ymin = 0, ymax = densities), fill = 'blue', alpha = 0.5) +
+  geom_ribbon(data = subset(plot_data, -abs(t_stat)>=t_values),
+                aes(ymin = 0, ymax = densities), fill = 'blue', alpha = 0.5) +
+    geom_vline(xintercept = t_stat, linetype = "dashed", color = "red") +
+    geom_vline(xintercept = -t_stat, linetype = "dashed", color = "red") +
+    labs(title = "t-Distribution with Shaded p-value Area (Horizontal Fill)",
+         x = "t value",
+         y = "Density") +
+    theme_minimal()
+
+```
 
 
 
